@@ -88,7 +88,8 @@ public class PlatformData {
     }
 
     /**
-     * Gets the value of the platsup property.
+     * True if the platform should not be displayed to users
+     * because it may not be correct or known
      * 
      * @return
      *     possible object is
@@ -116,7 +117,8 @@ public class PlatformData {
     }
 
     /**
-     * Gets the value of the cisPlatsup property.
+     * True if the platform should not be displayed to
+     * the users for "operational reasons" (ie. avoid stampedes?)
      * 
      * @return
      *     possible object is

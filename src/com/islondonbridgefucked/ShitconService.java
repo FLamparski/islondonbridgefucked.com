@@ -7,6 +7,7 @@ import com.islondonbridgefucked.datafeeds.DarwinDataFeed;
 import com.thalesgroup.pushport.Pport;
 import com.thalesgroup.pushport.StationMessage;
 import com.thalesgroup.pushport.TS;
+import com.thalesgroup.pushport.TSLocation;
 import com.thalesgroup.pushport.TrainAlert;
 import com.thalesgroup.pushport.Schedule;
 
@@ -39,6 +40,12 @@ public class ShitconService extends Application<FuckingConfiguration> {
 			if (port.getUR().getTS().size() > 0) {
 				List<TS> tss = port.getUR().getTS();
 				System.out.println("  TrainStatus x " + tss.size());
+				for (TS ts : tss) {
+					System.out.println("    TS: " + ts.getRid());
+					for (TSLocation lcn : ts.getLocation()) {
+						System.out.printf("      Location: %s (wta: %s, pta: %s, suppressed: %b)\n", lcn.getTpl(), lcn.getWta(), lcn.getPta(), lcn.isSuppr());
+					}
+				}
 			}
 			if (port.getUR().getOW().size() > 0) {
 				List<StationMessage> sms = port.getUR().getOW();

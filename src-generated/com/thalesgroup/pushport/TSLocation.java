@@ -82,7 +82,7 @@ public class TSLocation {
     protected String ptd;
 
     /**
-     * Gets the value of the arr property.
+     * Get the arrival time
      * 
      * @return
      *     possible object is
@@ -106,7 +106,7 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the dep property.
+     * Get the departure time
      * 
      * @return
      *     possible object is
@@ -130,7 +130,8 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the pass property.
+     * Get the time at which this train is supposed
+     * to pass the location
      * 
      * @return
      *     possible object is
@@ -154,7 +155,7 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the plat property.
+     * Get the platform information for this train
      * 
      * @return
      *     possible object is
@@ -178,7 +179,9 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the suppr property.
+     * True if the train should not be shown to users
+     * (for islondonbridgefucked it still may be worth
+     * to use it for calculations)
      * 
      * @return
      *     possible object is
@@ -202,7 +205,7 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the length property.
+     * Get train length (in number of cars?)
      * 
      * @return
      *     possible object is
@@ -226,7 +229,7 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the detachFront property.
+     * Does the front of the train detach?
      * 
      * @return
      *     possible object is
@@ -250,7 +253,8 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the tpl property.
+     * The TIPLOC of this Location. Cross-reference
+     * with the official data files and <a href="http://www.railwaycodes.org.uk/CRS/CRS0.shtm">this site</a>.
      * 
      * @return
      *     possible object is
@@ -274,7 +278,11 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the wta property.
+     * Gets the Working Timetable Arrival time for this train.
+     * Working scheduled time as HH:MM[:SS]
+     * 
+     * Working Timetable is not intended for public use, but could
+     * be useful for islondonbridgefucked to determine true delays.
      * 
      * @return
      *     possible object is
@@ -298,7 +306,8 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the wtd property.
+     * Gets the Working Timetable Departure for this train.
+     * Working scheduled time as HH:MM[:SS]
      * 
      * @return
      *     possible object is
@@ -322,7 +331,10 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the wtp property.
+     * Gets the Working Timetable Pass (ie. when in the
+     * working timetable this train is supposed to pass
+     * this location).
+     * Working scheduled time as HH:MM[:SS]
      * 
      * @return
      *     possible object is
@@ -346,7 +358,8 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the pta property.
+     * Gets the Public Timetable Arrival.
+     * Time as HH:MM
      * 
      * @return
      *     possible object is
@@ -370,7 +383,8 @@ public class TSLocation {
     }
 
     /**
-     * Gets the value of the ptd property.
+     * Gets the Public Timetable Departure.
+     * Time as HH:MM
      * 
      * @return
      *     possible object is
