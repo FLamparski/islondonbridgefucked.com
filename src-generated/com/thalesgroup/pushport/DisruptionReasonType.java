@@ -40,6 +40,10 @@ import javax.xml.bind.annotation.XmlValue;
     "value"
 })
 public class DisruptionReasonType {
+	public static final short DISRUPTION_SITUATION_NORMAL = 0;
+	public static final short DISRUPTION_MINOR = 1;
+	public static final short DISRUPTION_MAJOR = 2;
+	public static final short DISRUPTION_SEVERE = 3;
 
     @XmlValue
     protected short value;
@@ -49,7 +53,8 @@ public class DisruptionReasonType {
     protected Boolean near;
 
     /**
-     * A Darwin Reason Code
+     * A Darwin Reason Code. Compare with one of the DISRUPTION constants
+     * of this class (?).
      * 
      */
     public short getValue() {

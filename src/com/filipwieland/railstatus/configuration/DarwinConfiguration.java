@@ -1,4 +1,4 @@
-package com.islondonbridgefucked.configuration;
+package com.filipwieland.railstatus.configuration;
 
 import javax.validation.constraints.NotNull;
 

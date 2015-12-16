@@ -1,4 +1,4 @@
-package com.islondonbridgefucked;
+package com.filipwieland.railstatus;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -11,18 +11,18 @@ import javax.ws.rs.core.MediaType;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Optional;
 
-@Path("/fuck")
+@Path("/disruptions")
 @Produces(MediaType.APPLICATION_JSON)
-public class FuckednessResource {
+public class DisrupitonResource {
 	private final AtomicLong counter;
 	
-	public FuckednessResource() {
+	public DisrupitonResource() {
 		counter = new AtomicLong(0);
 	}
 	
 	@GET
 	@Timed
-	public Fuck sayHello() {
-		return new Fuck(counter.getAndIncrement());
+	public StationStatus sayHello() {
+		return new StationStatus(counter.getAndIncrement());
 	}
 }

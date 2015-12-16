@@ -1,4 +1,4 @@
-package com.islondonbridgefucked.datafeeds;
+package com.filipwieland.railstatus.datafeeds;
 
 import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
