@@ -45,7 +45,13 @@ public class TrainStatusTest {
 		feed.on(DarwinDataFeed.EVT_TRAIN_STATUS, (Event e) -> {
 			Map<String, Object> attrs = e.getAttrs();
 			ServiceCall call = (ServiceCall) attrs.get("descriptor");
-			System.out.println(call.toString());
+			System.out.printf("Service Call: Train ID %s scheduled %s at %s at %s, estimated %s, delta %d.\n",
+					call.getTrainId(),
+					call.getType().name(),
+					call.getLocation(),
+					call.getPlanned().toString(),
+					call.getEstimated().toString(),
+					call.getDifference());
 			return true;
 		});
 		feed.on(EventEmitter.EVT_ERROR, (Event e) -> {
