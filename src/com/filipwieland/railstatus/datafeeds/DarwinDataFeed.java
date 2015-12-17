@@ -101,7 +101,7 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 		for (TSLocation lcn : ts.getLocation()) {
 			if (lcn.getPass() != null) {
 				try {
-					ServiceCall cPass = ServiceCall.getInstance(new Date(), ts.getRid(), lcn.getWtp(), lcn.getPass().getEt(), lcn.getTpl(), ServiceCall.CallType.PASS);
+					ServiceCall cPass = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWtp(), lcn.getPass().getEt(), lcn.getTpl(), ServiceCall.CallType.PASS);
 					Map<String, Object> attrs = new HashMap<>();
 					attrs.put("descriptor", cPass);
 					this.emit(EVT_TRAIN_STATUS, attrs);
@@ -113,7 +113,7 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 			}
 			if (lcn.getArr() != null) {
 				try {
-					ServiceCall cPass = ServiceCall.getInstance(new Date(), ts.getRid(), lcn.getWta(), lcn.getArr().getEt(), lcn.getTpl(), ServiceCall.CallType.ARRIVAL);
+					ServiceCall cPass = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWta(), lcn.getArr().getEt(), lcn.getTpl(), ServiceCall.CallType.ARRIVAL);
 					Map<String, Object> attrs = new HashMap<>();
 					attrs.put("descriptor", cPass);
 					this.emit(EVT_TRAIN_STATUS, attrs);
@@ -125,7 +125,7 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 			}
 			if (lcn.getDep() != null) {
 				try {
-					ServiceCall cPass = ServiceCall.getInstance(new Date(), ts.getRid(), lcn.getWtd(), lcn.getDep().getEt(), lcn.getTpl(), ServiceCall.CallType.PASS);
+					ServiceCall cPass = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWtd(), lcn.getDep().getEt(), lcn.getTpl(), ServiceCall.CallType.PASS);
 					Map<String, Object> attrs = new HashMap<>();
 					attrs.put("descriptor", cPass);
 					this.emit(EVT_TRAIN_STATUS, attrs);
