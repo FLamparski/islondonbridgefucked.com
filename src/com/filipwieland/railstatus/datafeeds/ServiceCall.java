@@ -22,10 +22,21 @@ public class ServiceCall {
 		this.location = location;
 		this.type = type;
 	}
+	
+	private static String normaliseTimeString(String ts) throws Exception {
+		String[] parts = ts.split(":");
+		if (parts.length == 2) {
+			return ts + ":00";
+		} else if (parts.length == 3) {
+			return ts;
+		} else {
+			throw new Exception("Time string " + ts + " not normalisable.");
+		}
+	}
 
-	public static ServiceCall getInstance(Date now, String trainId, String planned, String estimated, String location, CallType ctype) throws ParseException {
-		String relativeEstimated = new SimpleDateFormat("yyyy-MM-dd").format(now) + "T" + estimated + ":00";
-		String relativeWorking = new SimpleDateFormat("yyyy-MM-dd").format(now) + "T" + planned + ":00";
+	public static ServiceCall getInstance(Date now, String trainId, String planned, String estimated, String location, CallType ctype) throws Exception {
+		String relativeEstimated = new SimpleDateFormat("yyyy-MM-dd").format(now) + "T" + normaliseTimeString(estimated);
+		String relativeWorking = new SimpleDateFormat("yyyy-MM-dd").format(now) + "T" + normaliseTimeString(planned);
 		Date relativeEstDate = isoDateFormat.parse(relativeEstimated);
 		Date relativeWorkingDate = isoDateFormat.parse(relativeWorking);
 		return new ServiceCall(trainId, relativeEstDate, relativeWorkingDate, location, ctype);
