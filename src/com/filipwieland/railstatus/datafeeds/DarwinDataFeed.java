@@ -22,6 +22,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.util.ByteArrayInputStream;
@@ -33,6 +34,7 @@ import com.thalesgroup.pushport.Schedule;
 import com.thalesgroup.pushport.StationMessage;
 import com.thalesgroup.pushport.TS;
 import com.thalesgroup.pushport.TSLocation;
+import com.thalesgroup.pushport.TSTimeData;
 import com.thalesgroup.pushport.TrainAlert;
 
 public class DarwinDataFeed extends EventEmitter implements MessageListener {
@@ -40,7 +42,7 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 	private final String brokerUrl;
 	private final String queueName;
 	private ActiveMQConnectionFactory amqFactory;
-	private Connection conn;
+	private ActiveMQConnection conn;
 	private MessageConsumer receiver;
 	//private final Map<String, String> stationNames;
 	
@@ -53,7 +55,7 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 	public void start() throws JMSException {
 		// Generic values. The real password is the queue name.
 		amqFactory = new ActiveMQConnectionFactory("d3user", "d3password", brokerUrl);
-		conn = amqFactory.createConnection();
+		conn = (ActiveMQConnection) amqFactory.createConnection();
 		
 		Session sess = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
 		Queue topic = new ActiveMQQueue(queueName);
@@ -96,16 +98,22 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 		processPushPortMessage(parsed);
 	}
 	
+	private String coalesceTime(TSTimeData timeData) {
+		if (timeData.getAt() != null) return timeData.getAt();
+		else if (timeData.getWet() != null) return timeData.getWet();
+		else if (timeData.getEt() != null) return timeData.getEt();
+		else return timeData.getEtmin();
+	}
+	
 	protected void processTrainStatus(TS ts) {
-		System.out.printf("    TS: %s %s %s\n", ts.getRid(), ts.getUid(), ts.getSsd().toString());
 		for (TSLocation lcn : ts.getLocation()) {
 			if (lcn.getPass() != null) {
 				try {
-					ServiceCall cPass = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWtp(), lcn.getPass().getEt(), lcn.getTpl(), ServiceCall.CallType.PASS);
+					ServiceCall call = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWtp(), coalesceTime(lcn.getPass()), lcn.getTpl(), ServiceCall.CallType.PASS);
 					Map<String, Object> attrs = new HashMap<>();
-					attrs.put("descriptor", cPass);
+					attrs.put("descriptor", call);
 					this.emit(EVT_TRAIN_STATUS, attrs);
-				} catch (ParseException e) {
+				} catch (Exception e) {
 					Map<String, Object> attrs = new HashMap<>();
 					attrs.put("exception", e);
 					this.emit(EVT_ERROR, attrs);
@@ -113,11 +121,11 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 			}
 			if (lcn.getArr() != null) {
 				try {
-					ServiceCall cPass = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWta(), lcn.getArr().getEt(), lcn.getTpl(), ServiceCall.CallType.ARRIVAL);
+					ServiceCall call = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWta(), coalesceTime(lcn.getArr()), lcn.getTpl(), ServiceCall.CallType.ARRIVAL);
 					Map<String, Object> attrs = new HashMap<>();
-					attrs.put("descriptor", cPass);
+					attrs.put("descriptor", call);
 					this.emit(EVT_TRAIN_STATUS, attrs);
-				} catch (ParseException e) {
+				} catch (Exception e) {
 					Map<String, Object> attrs = new HashMap<>();
 					attrs.put("exception", e);
 					this.emit(EVT_ERROR, attrs);
@@ -125,11 +133,11 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 			}
 			if (lcn.getDep() != null) {
 				try {
-					ServiceCall cPass = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWtd(), lcn.getDep().getEt(), lcn.getTpl(), ServiceCall.CallType.PASS);
+					ServiceCall call = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWtd(), coalesceTime(lcn.getDep()), lcn.getTpl(), ServiceCall.CallType.DEPARTURE);
 					Map<String, Object> attrs = new HashMap<>();
-					attrs.put("descriptor", cPass);
+					attrs.put("descriptor", call);
 					this.emit(EVT_TRAIN_STATUS, attrs);
-				} catch (ParseException e) {
+				} catch (Exception e) {
 					Map<String, Object> attrs = new HashMap<>();
 					attrs.put("exception", e);
 					this.emit(EVT_ERROR, attrs);
@@ -139,29 +147,27 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 	}
 
 	protected void processPushPortMessage(Pport port) {
-		System.out.println(port.getTs().toString() + ": " + port.getUR().getUpdateOrigin() + ":");
 		if (port.getUR().getTS().size() > 0) {
 			List<TS> tss = port.getUR().getTS();
-			System.out.println("  TrainStatus x " + tss.size());
 			tss.stream().forEach(this::processTrainStatus);
 		}
 		if (port.getUR().getOW().size() > 0) {
 			List<StationMessage> sms = port.getUR().getOW();
-			System.out.println("  StationMessage x " + sms.size());
 		}
-		if (port.getUR().getSchedule().size() > 0) {
-			List<Schedule> ss = port.getUR().getSchedule();
-			System.out.println("  Schedule x " + ss.size());
-		}
+		/*
 		if (port.getUR().getTrainAlert().size() > 0) {
 			List<TrainAlert> ats = port.getUR().getTrainAlert();
-			System.out.println("  TrainAlert x " + ats.size());
 		}
+		*/
 		if (port.getUR().getSchedule().size() > 0) {
 			List<Schedule> ss = port.getUR().getSchedule();
 			for (Schedule schedule : ss) {
-				System.out.println(schedule.getUid());
+				//System.out.println(schedule.getUid());
 			}
 		}
+	}
+	
+	public ActiveMQConnection getConnection() {
+		return conn;
 	}
 }
