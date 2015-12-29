@@ -1,17 +1,7 @@
 package com.filipwieland.railstatus;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.concurrent.LinkedBlockingDeque;
 
 import com.filipwieland.railstatus.configuration.RailStatusConfiguration;
 import com.filipwieland.railstatus.datafeeds.DarwinDataFeed;
@@ -45,7 +35,9 @@ public class DisruptionService extends Application<RailStatusConfiguration> {
 	public void run(RailStatusConfiguration conf, Environment env) throws Exception {
 		// stationNames = getStationNames(conf.getLocationsFile());
 		
-		feed = new DarwinDataFeed("failover:(tcp://datafeeds.nationalrail.co.uk:61616)?maxReconnectAttempts=5", conf.getDarwinConfiguration().getQueue());
+		feed = new DarwinDataFeed("failover:(tcp://datafeeds.nationalrail.co.uk:61616)?maxReconnectAttempts=5",
+				conf.getDarwinConfiguration().getQueue(),
+				env.metrics());
 		feed.on(DarwinDataFeed.EVT_TRAIN_STATUS, (Event e) -> {
 			ServiceCall call = (ServiceCall) e.getAttrs().get("descriptor");
 			/*

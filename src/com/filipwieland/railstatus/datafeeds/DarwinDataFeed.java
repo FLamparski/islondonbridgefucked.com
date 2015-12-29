@@ -24,10 +24,10 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.util.ByteArrayInputStream;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.MetricRegistry;
 import com.filipwieland.railstatus.events.EventEmitter;
 import com.thalesgroup.pushport.Pport;
-import com.thalesgroup.pushport.Schedule;
-import com.thalesgroup.pushport.StationMessage;
 import com.thalesgroup.pushport.TS;
 import com.thalesgroup.pushport.TSLocation;
 import com.thalesgroup.pushport.TSTimeData;
@@ -41,18 +41,23 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 	private MessageConsumer receiver;
 	//private final Map<String, String> stationNames;
 	
+	private final MetricRegistry metrics;
+	private Meter messagesMeter;
+	
 	@FunctionalInterface
 	private interface Accessor<T, O> {
 		public T access(O obj);
 	}
 	
-	public DarwinDataFeed(String brokerUrl, String queue) {
+	public DarwinDataFeed(String brokerUrl, String queue, MetricRegistry metrics) {
 		//this.stationNames = stationNames;
 		this.queueName = queue;
 		this.brokerUrl = brokerUrl;
+		this.metrics = metrics;
 	}
 	
 	public void start() throws JMSException {
+		if (metrics != null) messagesMeter = metrics.meter(MetricRegistry.name(DarwinDataFeed.class, "activemq-messages"));
 		// Generic values. The real password is the queue name.
 		amqFactory = new ActiveMQConnectionFactory("d3user", "d3password", brokerUrl);
 		conn = (ActiveMQConnection) amqFactory.createConnection();
@@ -82,6 +87,7 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 	@Override
 	public void onMessage(Message msg) {
 		try {
+			if (metrics != null) messagesMeter.mark();
 			BytesMessage bmsg = (BytesMessage) msg;
 			int len = (int) bmsg.getBodyLength();
 			Pport parsed = unfuckXML(decodeMessage(bmsg, len));
@@ -133,20 +139,20 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 			List<TS> tss = port.getUR().getTS();
 			tss.stream().forEach(this::processTrainStatus);
 		}
-		if (port.getUR().getOW().size() > 0) {
-			List<StationMessage> sms = port.getUR().getOW();
-		}
+		//if (port.getUR().getOW().size() > 0) {
+		//	List<StationMessage> sms = port.getUR().getOW();
+		//}
 		/*
 		if (port.getUR().getTrainAlert().size() > 0) {
 			List<TrainAlert> ats = port.getUR().getTrainAlert();
 		}
 		*/
-		if (port.getUR().getSchedule().size() > 0) {
+		/*if (port.getUR().getSchedule().size() > 0) {
 			List<Schedule> ss = port.getUR().getSchedule();
 			for (Schedule schedule : ss) {
 				//System.out.println(schedule.getUid());
 			}
-		}
+		}*/
 	}
 	
 	public ActiveMQConnection getConnection() {

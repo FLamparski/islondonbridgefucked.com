@@ -1,23 +1,18 @@
 package com.filipwieland.railstatus.tests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.zip.DataFormatException;
 
 import javax.xml.bind.JAXBException;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -41,7 +36,7 @@ public class TrainStatusTest {
 
 	@Test
 	public void testFew() throws IOException, JAXBException {
-		DarwinDataFeed feed = new DarwinDataFeed(null, null);
+		DarwinDataFeed feed = new DarwinDataFeed(null, null, null);
 		feed.on(DarwinDataFeed.EVT_TRAIN_STATUS, (Event e) -> {
 			Map<String, Object> attrs = e.getAttrs();
 			ServiceCall call = (ServiceCall) attrs.get("descriptor");
