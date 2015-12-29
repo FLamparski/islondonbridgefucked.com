@@ -1,9 +1,7 @@
 package com.filipwieland.railstatus.datafeeds;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +9,6 @@ import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import javax.jms.BytesMessage;
-import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
@@ -28,14 +25,12 @@ import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.util.ByteArrayInputStream;
 
 import com.filipwieland.railstatus.events.EventEmitter;
-import com.filipwieland.railstatus.events.EventListener;
 import com.thalesgroup.pushport.Pport;
 import com.thalesgroup.pushport.Schedule;
 import com.thalesgroup.pushport.StationMessage;
 import com.thalesgroup.pushport.TS;
 import com.thalesgroup.pushport.TSLocation;
 import com.thalesgroup.pushport.TSTimeData;
-import com.thalesgroup.pushport.TrainAlert;
 
 public class DarwinDataFeed extends EventEmitter implements MessageListener {
 	public static final String EVT_TRAIN_STATUS = "train-status";
@@ -45,6 +40,11 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 	private ActiveMQConnection conn;
 	private MessageConsumer receiver;
 	//private final Map<String, String> stationNames;
+	
+	@FunctionalInterface
+	private interface Accessor<T, O> {
+		public T access(O obj);
+	}
 	
 	public DarwinDataFeed(String brokerUrl, String queue) {
 		//this.stationNames = stationNames;
@@ -105,44 +105,26 @@ public class DarwinDataFeed extends EventEmitter implements MessageListener {
 		else return timeData.getEtmin();
 	}
 	
+	private void emitOn(ServiceCall.CallType type, TSLocation location, String trainId, Accessor<TSTimeData, TSLocation> tdAccessor, Accessor<String, TSLocation> wtAccessor) {
+		if (tdAccessor.access(location) != null) {
+			try {
+				ServiceCall call = ServiceCall.getInstance(new Date(), trainId, wtAccessor.access(location), coalesceTime(tdAccessor.access(location)), location.getTpl(), type);
+				Map<String, Object> attrs = new HashMap<>();
+				attrs.put("descriptor", call);
+				this.emit(EVT_TRAIN_STATUS, attrs);
+			} catch (Exception e) {
+				Map<String, Object> attrs = new HashMap<>();
+				attrs.put("exception", e);
+				this.emit(EVT_ERROR, attrs);
+			}
+		}
+	}
+	
 	protected void processTrainStatus(TS ts) {
 		for (TSLocation lcn : ts.getLocation()) {
-			if (lcn.getPass() != null) {
-				try {
-					ServiceCall call = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWtp(), coalesceTime(lcn.getPass()), lcn.getTpl(), ServiceCall.CallType.PASS);
-					Map<String, Object> attrs = new HashMap<>();
-					attrs.put("descriptor", call);
-					this.emit(EVT_TRAIN_STATUS, attrs);
-				} catch (Exception e) {
-					Map<String, Object> attrs = new HashMap<>();
-					attrs.put("exception", e);
-					this.emit(EVT_ERROR, attrs);
-				}
-			}
-			if (lcn.getArr() != null) {
-				try {
-					ServiceCall call = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWta(), coalesceTime(lcn.getArr()), lcn.getTpl(), ServiceCall.CallType.ARRIVAL);
-					Map<String, Object> attrs = new HashMap<>();
-					attrs.put("descriptor", call);
-					this.emit(EVT_TRAIN_STATUS, attrs);
-				} catch (Exception e) {
-					Map<String, Object> attrs = new HashMap<>();
-					attrs.put("exception", e);
-					this.emit(EVT_ERROR, attrs);
-				}
-			}
-			if (lcn.getDep() != null) {
-				try {
-					ServiceCall call = ServiceCall.getInstance(new Date(), ts.getUid(), lcn.getWtd(), coalesceTime(lcn.getDep()), lcn.getTpl(), ServiceCall.CallType.DEPARTURE);
-					Map<String, Object> attrs = new HashMap<>();
-					attrs.put("descriptor", call);
-					this.emit(EVT_TRAIN_STATUS, attrs);
-				} catch (Exception e) {
-					Map<String, Object> attrs = new HashMap<>();
-					attrs.put("exception", e);
-					this.emit(EVT_ERROR, attrs);
-				}
-			}
+			emitOn(ServiceCall.CallType.PASS, lcn, ts.getUid(), (TSLocation loc) -> loc.getPass(), (TSLocation loc) -> loc.getWtp());
+			emitOn(ServiceCall.CallType.ARRIVAL, lcn, ts.getUid(), (TSLocation loc) -> loc.getArr(), (TSLocation loc) -> loc.getWta());
+			emitOn(ServiceCall.CallType.DEPARTURE, lcn, ts.getUid(), (TSLocation loc) -> loc.getDep(), (TSLocation loc) -> loc.getWtd());
 		}
 	}
 
