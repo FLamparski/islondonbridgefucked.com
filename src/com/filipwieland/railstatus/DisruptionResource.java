@@ -1,6 +1,5 @@
 package com.filipwieland.railstatus;
 
-import java.util.Deque;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.ws.rs.GET;
@@ -13,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
 import com.filipwieland.railstatus.datafeeds.ServiceCall;
+import com.filipwieland.railstatus.datafeeds.ServiceCallsMultiIndex;
 
 @Path("/disruptions")
 @Produces(MediaType.APPLICATION_JSON)
@@ -22,9 +22,9 @@ public class DisruptionResource {
 	
 	private final AtomicLong counter;
 	
-	private final Deque<ServiceCall> serviceCalls;
+	private final ServiceCallsMultiIndex serviceCalls;
 	
-	public DisruptionResource(Deque<ServiceCall> serviceCalls) {
+	public DisruptionResource(ServiceCallsMultiIndex serviceCalls) {
 		counter = new AtomicLong(0);
 		this.serviceCalls = serviceCalls;
 	}
